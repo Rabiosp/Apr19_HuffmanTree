@@ -34,6 +34,9 @@ getFrequencies(const std::string& filename) {
     return um;
 }
 
+// TODO 3: build a Huffman coding tree
+// ref: https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
+
 int main()
 {
     auto charFreq = getFrequencies("Pride_and_Prejudice.txt");
@@ -41,4 +44,6 @@ int main()
     for (auto& cf: charFreq) { // travers a map
         std::cout << cf.first << ": " << cf.second << std::endl;
     }
+
+    
 }
