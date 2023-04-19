@@ -36,5 +36,9 @@ getFrequencies(const std::string& filename) {
 
 int main()
 {
-    getFrequencies("Pride_and_Prejudice.txt");
+    auto charFreq = getFrequencies("Pride_and_Prejudice.txt");
+    // test to see all char and freq from um
+    for (auto& cf: charFreq) { // travers a map
+        std::cout << cf.first << ": " << cf.second << std::endl;
+    }
 }
