@@ -27,13 +27,9 @@ getFrequencies(const std::string& filename) {
     char ch;
     // while (file >> ch) { // to calculate without endl and blank
     while(file.get(ch)){
-        std::cout << ch;
+        um[ch] += 1;
     }
     file.close();
-
-
-
-
 
     return um;
 }
