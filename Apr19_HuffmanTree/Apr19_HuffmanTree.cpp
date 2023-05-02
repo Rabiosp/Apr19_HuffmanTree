@@ -4,18 +4,18 @@
 #include <iostream>
 #include <unordered_map>
 #include <string>
-#include <sstream>
 #include <fstream>
 #include <queue>
+#include <sstream>
 
 #define COUNT 10
 
 struct Node {
     char ch;
     int freq;
-    Node* left;
-    Node* right;
-    Node() = delete; // no allow to use default constructor
+    Node* left{nullptr};
+    Node* right{ nullptr };
+    Node() = delete; // does'nt allow to use default constructor
     Node(char c, int f) : ch{ c }, freq{ f }, left{ nullptr }, right{ nullptr } {  }
 };
 
@@ -25,7 +25,8 @@ void printNode(const NodePtr& node) {
     std::cout << "(" << node->ch<<":"<<node->freq << ")" << "--" << node->left->ch << ":" << node->left->freq << std::endl
         << "|" << std::endl << node->right->ch <<":" << node->right->freq << std::endl;
 }
-// TODO 2: write a function that reads a file and retursn ch freq
+
+// TODO 2: write a function that reads a file and return ch freq
 std::unordered_map<char, int>
 getFrequencies(const std::string& filename) {
     std::unordered_map<char, int> um;
@@ -53,17 +54,21 @@ struct CompareFreq {
 // TODO 3: build a Huffman coding tree
 // ref: https://www.geeksforgeeks.org/huffman-coding-greedy-algo-3/
 NodePtr huffmanTreeRoot(const std::unordered_map<char, int> charFreq) {
-    //NodePtr n = new Node('3', 5);
     
     std::priority_queue<NodePtr, std::vector<NodePtr>, CompareFreq> pqN;
-    for (auto& cf : charFreq) { // travers a map
+    for (auto& cf : charFreq) { // traverse a map
         pqN.push(new Node(cf.first, cf.second));
     }
-    //std::cout << "SIZE:" << pqN.size() << ":" << !(pqN.size() == 1) << std::endl;
 
-   
+    //// Traverse priority queue
+    //while (!pqN.empty()) {
+    //    auto node = pqN.top();
+    //    std::cout << node->ch << ":" << node->freq << std::endl;
+    //    pqN.pop();
+    //}
+
+    //std::cout << "SIZE:" << pqN.size() << ":" << !(pqN.size() == 1) << std::endl;
     while (!(pqN.size() == 1)) {
-        
         auto node1 = pqN.top();
         //std::cout << "node 1 '" << node1->ch << "'[" << node1->freq << "]" << std::endl;
         pqN.pop();
@@ -71,7 +76,7 @@ NodePtr huffmanTreeRoot(const std::unordered_map<char, int> charFreq) {
         //std::cout << "node 2 '" << node2->ch << "'[" << node2->freq << "]" << std::endl;
         pqN.pop();
         auto new_freq = node1->freq + node2->freq;
-        //std::cout << "new freq = " << node1->freq << "+" << node2->freq << "=" << new_freq << std::endl;
+        //std::cout << "new freq = " << node1->freq << "+" << node2->freq << "=" << new_freq << std::endl; 
         NodePtr aux = new Node('#', new_freq);
         aux->left = node1;
         aux->right = node2;
@@ -84,48 +89,58 @@ NodePtr huffmanTreeRoot(const std::unordered_map<char, int> charFreq) {
     return pqN.top();
     
 }
-std::stringstream huffmanEncodingRecLeft(NodePtr& node, std::stringstream& huffman_encoding) {
 
-    huffman_encoding << '0';
-    if (node and node->left == nullptr and node->right == nullptr) {
-        // leaf
+void huffmanEncodingRec(NodePtr& node, std::string huffman_encoding, std::unordered_map<char, std::string>& map) {
+
+    if (node) {
+
+        huffmanEncodingRec(node->left,  huffman_encoding + '0', map);
+        if (node->left == nullptr and node->right == nullptr) {
+            // leaf
+            map[node->ch] = huffman_encoding;
+
+        }
+        huffmanEncodingRec(node->right, huffman_encoding + '1', map);
+
     }
-    if (node->left) huffmanEncodingRecLeft(node->left, huffman_encoding);
-    if (node->right) huffmanEncodingRecRight(node->right, huffman_encoding);
     
 }
 
-std::stringstream huffmanEncodingRecRight(NodePtr& node, std::stringstream& huffman_encoding) {
-    
-    
-    huffman_encoding << '1';
-    if (node and node->left == nullptr and node->right == nullptr) {
-        // leaf
-    }
-    if (node->left) huffmanEncodingRecLeft(node->left, huffman_encoding);
-    if (node->right) huffmanEncodingRecRight(node->right, huffman_encoding);
-}
 // TODO 4: Function that takes the root, prints and outputs encoding scheme in a data structure object
 std::unordered_map<char, std::string> huffmanEncoding(NodePtr& root) {
-    
-    std::stringstream huffman_encoding;
-    huffmanEncodingRecLeft(root->left, huffman_encoding);
-    huffmanEncodingRecRight(root->right, huffman_encoding);
+    /*std::cout << "Encoding" << std::endl;*/
+    std::unordered_map<char, std::string> encodingScheme;
+    std::string huffman_encoding = "";
+    huffmanEncodingRec(root, huffman_encoding, encodingScheme);
+    return encodingScheme;
 }
 
 // TODO 5: Function that takes the encoding scheme and filename, output encoded content(bit-string) to a file named pride.huff
-void huffmanOuput(const std::unordered_map<char, std::string>& encodingScheme, std::string filename) {
-
+void huffmanOutput(const std::unordered_map<char, std::string>& encodingScheme, std::string filename) {
+    std::ofstream output(filename, std::ios::out);
+    if (!output) {
+        std::cerr << "Error opening output file!" << std::endl;
+        return;
+    }
+    
+    for (auto& bitString : encodingScheme) {
+        std::ostringstream encodedContent;
+        encodedContent << bitString.first << "-" << bitString.second << std::endl;
+        output << encodedContent.str();
+    }
+    output.close();
 }
 int main()
 {
     auto charFreq = getFrequencies("Pride_and_Prejudice.txt");
-    // test to see all char and freq from um
+    //// test to see all char and freq from um
     //for (auto& cf: charFreq) { // travers a map
     //    std::cout << cf.first << ": " << cf.second << std::endl;
     //}
+    /*std::cout << std::endl;*/
     NodePtr root = huffmanTreeRoot(charFreq);
-    
+    std::unordered_map<char,std::string> encodingScheme = huffmanEncoding(root);
+    huffmanOutput(encodingScheme, "pride.huff");
 
     
 }
